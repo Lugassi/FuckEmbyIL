@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>כניסה • FuckEmbyIL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg-1: #050713;
+            --bg-2: #1a1230;
+            --card: rgba(11, 11, 22, 0.95);
+            --accent: #ff5f9e;
+            --text: #f7f8fd;
+            --muted: rgba(247, 248, 253, 0.7);
+            --border: rgba(255, 255, 255, 0.08);
+            --danger: #ff7d7d;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Heebo", "Segoe UI", system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at top, var(--bg-2), var(--bg-1) 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            color: var(--text);
+        }
+
+        .card {
+            width: min(420px, 100%);
+            background: var(--card);
+            border-radius: 28px;
+            padding: 2.2rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+        }
+
+        h1 {
+            margin: 0 0 0.5rem;
+            font-size: 2rem;
+        }
+
+        p {
+            margin: 0 0 1.8rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            padding: 0.9rem 1.2rem;
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text);
+            font-size: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input[type="password"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(255, 95, 158, 0.25);
+        }
+
+        button {
+            width: 100%;
+            border: none;
+            border-radius: 999px;
+            margin-top: 1.2rem;
+            padding: 0.95rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #0b0b16;
+            background: linear-gradient(120deg, #ffb347, var(--accent));
+            cursor: pointer;
+            box-shadow: 0 15px 40px rgba(255, 95, 158, 0.35);
+            transition: transform 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .error {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 16px;
+            background: rgba(255, 125, 125, 0.15);
+            border: 1px solid rgba(255, 125, 125, 0.4);
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .tip {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <h1>כניסה למערכת</h1>
+        <p>הזן/י את הסיסמה כדי להיכנס.</p>
+
+        <form method="post">
+            <input type="hidden" name="next" value="{{ next_url }}">
+            <label for="password">סיסמה</label>
+            <input id="password" type="password" name="password" autocomplete="current-password" required>
+            <button type="submit">כניסה</button>
+        </form>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+    </main>
+</body>
+</html>
