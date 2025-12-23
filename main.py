@@ -25,9 +25,8 @@ from flask import (
 # EmbyIL / streamingstreaming registration endpoint
 REG_URL = "https://streamingstreaming.com/reg.php"
 
-# Juhe temp mail config
-API_KEY = "434306d581f376e3aa290e7c7df966fc"
-BASE_URL = "https://hub.juheapi.com/temp-mail/v1"
+# Guerrilla Mail temp mail config
+BASE_URL = "https://api.guerrillamail.com/ajax.php"
 
 PASSWORD_CHARSET = string.ascii_letters + string.digits
 CONFIG_PATH = Path(os.environ.get("CONFIG_FILE", "config.json"))
@@ -114,19 +113,13 @@ def generate_password(length: int = 10) -> str:
 
 
 def generate_temp_email():
-    """Generate a new temp email using the Juhe temp-mail API."""
+    """Generate a new temp email using the Guerrilla Mail API."""
     logger.info("1. מייצר תיבת דואר זמנית חדשה...")
 
-    url = f"{BASE_URL}/create"
-    params = {"apikey": API_KEY}
+    url = f"{BASE_URL}?f=get_email_address"
 
     try:
-        resp = requests.post(
-            url,
-            params=params,
-            headers={"accept": "application/json"},
-            timeout=10,
-        )
+        resp = requests.get(url, timeout=10)
         logger.debug("Temp mail HTTP status: %s", resp.status_code)
         logger.debug("Temp mail raw body: %r", resp.text)
         resp.raise_for_status()
@@ -142,33 +135,25 @@ def generate_temp_email():
 
     logger.debug("Temp mail JSON parsed: %r", result)
 
-    if result.get("code") == "0" and result.get("data"):
-        data = result["data"]
-        email_address = data.get("email_address")
-        if not email_address:
-            logger.error("Temp mail response missing 'email_address': %r", data)
-            return None
-
-        mailbox_id = data.get("mailbox_id") or data.get("id") or email_address
+    if isinstance(result, dict) and "email_addr" in result:
+        email_address = result["email_addr"]
+        sid_token = result.get("sid_token")
 
         logger.info("   - Success! Email: %s", email_address)
         return {
             "email": email_address,
-            "mailbox_id": mailbox_id,
-            "raw": data,
+            "sid_token": sid_token,
         }
 
-    logger.warning("   - API Error: %s", result.get("msg"))
+    logger.warning("   - API Error: Unexpected response format")
     return None
 
 
-def check_inbox(email_address: str, timeout_seconds=180, interval=10):
+def check_inbox(email_address: str, sid_token: str, timeout_seconds=180, interval=10):
     """Poll the temporary mailbox until an email arrives or timeout is reached."""
     logger.info("3. בודק הודעות חדשות עבור %s ...", email_address)
 
     start_time = time.time()
-    url = f"{BASE_URL}/get-emails"
-    params = {"apikey": API_KEY}
 
     attempt = 1
     while time.time() - start_time < timeout_seconds:
@@ -180,14 +165,10 @@ def check_inbox(email_address: str, timeout_seconds=180, interval=10):
             email_address,
         )
 
+        # Get messages list
+        url = f"{BASE_URL}?f=check_email&sid_token={sid_token}"
         try:
-            resp = requests.post(
-                url,
-                params=params,
-                headers={"accept": "application/json"},
-                data={"email_address": email_address},
-                timeout=10,
-            )
+            resp = requests.get(url, timeout=10)
             logger.debug("Inbox HTTP status: %s", resp.status_code)
             logger.debug("Inbox raw: %r", resp.text)
             resp.raise_for_status()
@@ -207,16 +188,30 @@ def check_inbox(email_address: str, timeout_seconds=180, interval=10):
 
         logger.debug("Inbox JSON parsed: %r", result)
 
-        if result.get("code") == "0" and result.get("data"):
-            data = result["data"]
-            emails_list = data.get("emails", [])
-            if emails_list:
+        messages = result.get("list", [])
+        if messages:
+            # Fetch full content for each message
+            full_messages = []
+            for msg in messages:
+                msg_id = msg.get("mail_id")
+                if msg_id:
+                    read_url = f"{BASE_URL}?f=fetch_email&email_id={msg_id}&sid_token={sid_token}"
+                    try:
+                        read_resp = requests.get(read_url, timeout=10)
+                        if read_resp.ok:
+                            full_msg = read_resp.json()
+                            full_messages.append(full_msg)
+                        else:
+                            logger.warning("Failed to read message %s", msg_id)
+                    except requests.RequestException as exc:
+                        logger.error("Error reading message %s: %s", msg_id, exc)
+            if full_messages:
                 logger.info(
                     "   נמצאו %d הודעות חדשות עבור %s!",
-                    len(emails_list),
+                    len(full_messages),
                     email_address,
                 )
-                return emails_list
+                return full_messages
 
         logger.info("   - אין הודעות עדיין. חוזר לבדוק שוב בעוד %d שניות...", interval)
         time.sleep(interval)
@@ -231,7 +226,7 @@ def check_inbox(email_address: str, timeout_seconds=180, interval=10):
 def extract_activation_link_from_message(msg: dict) -> str | None:
     """Try to extract an activation URL from a single message."""
     text_parts = []
-    for key in ("text", "html", "content", "body"):
+    for key in ("mail_body", "textBody", "htmlBody", "text", "html", "content", "body"):
         if key in msg and isinstance(msg[key], str):
             text_parts.append(msg[key])
 
@@ -307,7 +302,9 @@ def register_and_activate():
         }
 
     email_address = email_info["email"]
-    mailbox_id = email_info.get("mailbox_id")
+    login = email_info.get("login")
+    domain = email_info.get("domain")
+    sid_token = email_info.get("sid_token")
     password = generate_password()
     mark("temp_mail", f"תיבת המייל נוצרה: {email_address}")
 
@@ -349,7 +346,7 @@ def register_and_activate():
     mark("registration", f"סטטוס תגובה: {reg_resp.status_code}. ממתין למייל הפעלה...")
 
     mark("inbox", "בודק את התיבה לקבלת מייל הפעלה...")
-    messages = check_inbox(email_address, timeout_seconds=120)
+    messages = check_inbox(email_address, sid_token, timeout_seconds=120)
 
     if not messages:
         mark("inbox", "לא התקבל מייל הפעלה בזמן.")
@@ -361,7 +358,8 @@ def register_and_activate():
             "password": password,
             "server_reply": reg_snippet,
             "status_code": reg_resp.status_code,
-            "mailbox_id": mailbox_id,
+            "login": login,
+            "domain": domain,
             "progress": progress,
         }
 
@@ -377,7 +375,7 @@ def register_and_activate():
             "server_reply": reg_snippet,
             "status_code": reg_resp.status_code,
             "messages": messages,
-            "mailbox_id": mailbox_id,
+            "sid_token": sid_token,
             "progress": progress,
         }
 
@@ -420,7 +418,8 @@ def register_and_activate():
         "activation_status": activation_status,
         "activation_error": activation_error,
         "activation_body": activation_body,
-        "mailbox_id": mailbox_id,
+        "login": login,
+        "domain": domain,
         "progress": progress,
     }
 
