@@ -150,7 +150,14 @@ def mailtm_wait_for_message(token, timeout=300, interval=8):
     while time.time() - start < timeout:
         r = requests.get(f"{MAILTM_BASE}/messages", headers=headers, timeout=10)
         r.raise_for_status()
-        messages = r.json().get("hydra:member", [])
+        try:
+            data = r.json()
+        except Exception:
+            logger.error("Inbox returned HTML:\n%s", r.text[:500])
+            time.sleep(interval)
+            continue
+
+        messages = data.get("hydra:member", [])
 
         logger.info("Mail.tm inbox messages: %d", len(messages))
 
@@ -168,8 +175,13 @@ def mailtm_fetch_message(token, message_id):
         headers=headers,
         timeout=10,
     )
-    r.raise_for_status()
-    return r.json()
+
+    try:
+        return r.json()
+    except Exception:
+        logger.error("Mail.tm returned non-JSON:\n%s", r.text[:500])
+        return None
+
 
 # ==========================
 # MAIN FLOW
