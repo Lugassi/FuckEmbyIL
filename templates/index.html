@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+    <title>EmbyIL Helper</title>
+    <style>
+        :root {
+            /* Mature Glassmorphism Color Palette */
+            --bg-base: #0a0a0c;
+            --bg-gradient-1: #1a1a24;
+            --bg-gradient-2: #0f0f15;
+
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-border-light: rgba(255, 255, 255, 0.15);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.85);
+            --text-muted: rgba(255, 255, 255, 0.5);
+
+            /* Sophisticated Accents */
+            --accent-blue: #2563eb;
+            --accent-blue-hover: #3b82f6;
+            --accent-glow: rgba(37, 99, 235, 0.4);
+
+            --success: #10b981;
+            --error: #ef4444;
+
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(37, 99, 235, 0.15), transparent 45%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.1), transparent 45%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px 20px;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 720px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Core Glass Panel Utility */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--glass-shadow);
+            padding: 32px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 32px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+            border: 1px solid var(--glass-border-light);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2);
+        }
+
+        .header-title h1 {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 2px;
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-glass {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--glass-border-light);
+        }
+
+        .btn-glass.danger {
+            color: #ff6b6b;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            text-align: center;
+            padding: 48px 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        }
+
+        .hero-section h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.03em;
+        }
+
+        .hero-section p {
+            color: var(--text-muted);
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 40px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-sm);
+            padding: 16px 36px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 14px var(--accent-glow), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+            background: var(--accent-blue-hover);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .btn-primary.loading .spinner {
+            display: inline-block;
+        }
+
+        /* Process Map */
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .process-step {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .process-step h4 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+        }
+
+        .process-step p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .process-step.active {
+            border-color: rgba(37, 99, 235, 0.4);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .process-step.active .step-icon {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .process-step.done .step-icon {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .process-step.error .step-icon {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+            margin-top: 8px;
+            animation: slideUp 0.5s ease;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        @media (min-width: 600px) {
+            .results-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .result-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-info {
+            min-width: 0;
+        }
+
+        .result-info span {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .result-info strong {
+            display: block;
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--glass-border-light);
+        }
+
+        .btn-icon:active {
+            transform: scale(0.95);
+        }
+
+        .btn-icon.copied {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .link-card {
+            grid-column: 1 / -1;
+        }
+
+        .link-card strong {
+            color: var(--accent-blue);
+            font-size: 15px;
+            white-space: normal;
+            word-break: break-all;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-container {
+            background: rgba(20, 20, 25, 0.85);
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 560px;
+            padding: 40px;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-overlay.show .modal-container {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .modal-container h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .modal-container ol {
+            padding-right: 20px;
+            margin-bottom: 32px;
+        }
+
+        .modal-container li {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-size: 15px;
+        }
+
+        .modal-container strong {
+            color: white;
+            font-weight: 600;
+        }
+
+        .video-container {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: #000;
+            border: 1px solid var(--glass-border);
+        }
+
+        .video-container video {
+            width: 100%;
+            display: block;
+            max-height: 320px;
+        }
+
+        /* Utilities & Animations */
+        .section-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 14px;
+            background: var(--accent-blue);
+            border-radius: 2px;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            body {
+                padding: 16px 12px;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+                padding: 24px 20px;
+            }
+
+            .hero-section {
+                padding: 32px 20px;
+            }
+
+            .hero-section h2 {
+                font-size: 26px;
+            }
+
+            .btn-primary {
+                width: 100%;
+            }
+
+            .glass-panel {
+                padding: 24px 20px;
+            }
+
+            .modal-container {
+                padding: 32px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <header class="header">
+            <div class="brand">
+                <div class="brand-icon">IL</div>
+                <div class="header-title">
+                    <h1>FuckEmbyIL</h1>
+                    <p>מערכת הקצאת משתמשים</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-glass" onclick="toggleModal('show')">מדריך התקנה</button>
+                <a href="{{ url_for('logout') }}" class="btn-glass danger">התנתקות</a>
+            </div>
+        </header>
+
+        <main class="glass-panel hero-section">
+            <h2>יצירת משתמש חדש</h2>
+            <p>כל שלושה ימים תחזרו לאתר, תלחצו על הכפתור ותקבלו משתמש חינמי לעוד שלושה ימים.
+            </p>
+            <button id="run-btn" class="btn-primary" onclick="startProcess()">
+                <span class="spinner"></span>
+                <span id="btn-text">התחל תהליך יצירה</span>
+            </button>
+        </main>
+
+        <section class="glass-panel">
+            <div class="section-label">סטטוס תהליך</div>
+            <div class="process-grid" id="progress-list">
+                <div class="process-step" id="step-temp_mail">
+                    <div class="step-icon">1</div>
+                    <h4>מייל זמני</h4>
+                    <p>הקצאת כתובת</p>
+                </div>
+                <div class="process-step" id="step-registration">
+                    <div class="step-icon">2</div>
+                    <h4>רישום</h4>
+                    <p>שליחת נתונים</p>
+                </div>
+                <div class="process-step" id="step-inbox">
+                    <div class="step-icon">3</div>
+                    <h4>אימות</h4>
+                    <p>המתנה לאישור</p>
+                </div>
+                <div class="process-step" id="step-activation">
+                    <div class="step-icon">4</div>
+                    <h4>הפעלה</h4>
+                    <p>סיום תהליך</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-panel results-section" id="results-area">
+            <div class="section-label" style="color: var(--success);"><span
+                    style="background:var(--success); width:4px; height:14px; border-radius:2px; margin-left:8px; display:inline-block;"></span>התהליך
+                הושלם בהצלחה</div>
+            <div class="results-grid">
+                <div class="result-card">
+                    <div class="result-info">
+                        <span>שם משתמש</span>
+                        <strong id="res-email">-</strong>
+                    </div>
+                    <button class="btn-icon" onclick="copyText('res-email', this)">📋</button>
+                </div>
+                <div class="result-card">
+                    <div class="result-info">
+                        <span>סיסמה</span>
+                        <strong id="res-password">-</strong>
+                    </div>
+                    <button class="btn-icon" onclick="copyText('res-password', this)">📋</button>
+                </div>
+                <div class="result-card link-card">
+                    <div class="result-info">
+                        <span>קישור הפעלה לגיבוי</span>
+                        <strong id="res-link">-</strong>
+                    </div>
+                </div>
+
+                <!-- New redirect button -->
+                <div class="link-card"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; margin-top: 8px;">
+                    <a href="https://play.embyil.tv/" class="btn-primary" style="text-decoration: none; width: 100%;"
+                        target="_blank">
+                        פתח את Emby Web (לצפייה מיידית)
+                    </a>
+                    <p style="color: var(--text-muted); font-size: 13px; text-align: center;">פתיחת אמבי לטלפון בלבד!
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer Note -->
+        <footer
+            style="margin-top: 32px; text-align: center; color: var(--text-muted); font-size: 14px; padding: 0 16px;">
+            <p>פעם הבאה שלא יעשו תוכן פיראטי בחינם, ואחרי חודש יבקשו כסף</p>
+        </footer>
+
+    </div>
+
+    <div class="modal-overlay" id="guide-modal" onclick="if(event.target===this) toggleModal('hide')">
+        <div class="modal-container">
+            <button class="modal-close" onclick="toggleModal('hide')">✕</button>
+            <h3>מדריך התקנה למסכים</h3>
+            <ol>
+                <li>הסירו מהמכשיר כל גרסה קודמת של אפליקציית <strong>Emby</strong>.</li>
+                <li>הורידו מחנות האפליקציות את <strong>Downloader by AFTVnews</strong> (אייקון כתום).</li>
+                <li>באפליקציית Downloader הזינו את הקוד: <strong>6707784</strong> (או 103919 במקרה של שגיאה).</li>
+                <li>הורידו את קובץ ה-APK המיועד למערכת והתקינו אותו.</li>
+                <li>התחברו באפליקציה החדשה בעזרת שם המשתמש והסיסמה שיצרתם כאן.</li>
+            </ol>
+            <div class="video-container">
+                <video controls preload="metadata" controlslist="nodownload noplaybackrate">
+                    <source src="{{ url_for('static', filename='embytutorial.mp4') }}" type="video/mp4">
+                </video>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const stepsSequence = ['temp_mail', 'registration', 'inbox', 'activation'];
+        let pseudoInterval;
+
+        function toggleModal(action) {
+            const modal = document.getElementById('guide-modal');
+            if (action === 'show') modal.classList.add('show');
+            else modal.classList.remove('show');
+        }
+
+        function resetUI() {
+            document.getElementById('results-area').classList.remove('show');
+            stepsSequence.forEach((s, idx) => {
+                const el = document.getElementById(`step-${s}`);
+                if (el) {
+                    el.className = 'process-step';
+                    el.querySelector('.step-icon').textContent = (idx + 1).toString();
+                }
+            });
+        }
+
+        function setStepState(stepId, state) {
+            const el = document.getElementById(`step-${stepId}`);
+            if (!el) return;
+            el.className = `process-step ${state}`;
+            const icon = el.querySelector('.step-icon');
+            if (state === 'done') icon.textContent = '✓';
+            else if (state === 'error') icon.textContent = '!';
+        }
+
+        async function copyText(elementId, btnElement) {
+            const textEl = document.getElementById(elementId);
+            if (!textEl || textEl.innerText === '-' || textEl.innerText.includes('N/A')) return;
+            try {
+                await navigator.clipboard.writeText(textEl.innerText);
+                btnElement.textContent = '✓';
+                btnElement.classList.add('copied');
+                setTimeout(() => {
+                    btnElement.textContent = '📋';
+                    btnElement.classList.remove('copied');
+                }, 2000);
+            } catch (err) { }
+        }
+
+        async function startProcess() {
+            const btn = document.getElementById('run-btn');
+            const btnText = document.getElementById('btn-text');
+
+            if (btn.disabled) return;
+
+            btn.disabled = true;
+            btn.classList.add('loading');
+            btnText.innerText = 'מייצר נתונים...';
+            resetUI();
+
+            let currentStep = 0;
+            setStepState(stepsSequence[currentStep], 'active');
+
+            pseudoInterval = setInterval(() => {
+                if (currentStep < stepsSequence.length - 1) {
+                    setStepState(stepsSequence[currentStep], 'done');
+                    currentStep++;
+                    setStepState(stepsSequence[currentStep], 'active');
+                }
+            }, 2800);
+
+            try {
+                const res = await fetch('/api/register', { method: 'POST' });
+                const data = await res.json();
+
+                clearInterval(pseudoInterval);
+
+                if (data.success) {
+                    stepsSequence.forEach(s => setStepState(s, 'done'));
+
+                    document.getElementById('res-email').innerText = data.email || data.username || 'N/A';
+                    document.getElementById('res-password').innerText = data.password || 'N/A';
+
+                    const linkEl = document.getElementById('res-link');
+                    if (data.activation_link) {
+                        linkEl.innerText = data.activation_link;
+                    } else {
+                        linkEl.innerText = "לא נדרש קישור";
+                    }
+
+                    document.getElementById('results-area').classList.add('show');
+                    btnText.innerText = 'הושלם';
+
+                    setTimeout(() => {
+                        document.getElementById('results-area').scrollIntoView({ behavior: 'smooth', block: 'end' });
+                    }, 100);
+
+                } else {
+                    setStepState(stepsSequence[currentStep], 'error');
+                    btnText.innerText = 'שגיאה. נסה שוב';
+                }
+            } catch (e) {
+                clearInterval(pseudoInterval);
+                setStepState(stepsSequence[currentStep], 'error');
+                btnText.innerText = 'שגיאת תקשורת';
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                setTimeout(() => { if (!btn.disabled) btnText.innerText = 'צור משתמש חדש'; }, 5000);
+            }
+        }
+    </script>
+</body>
+
+</html>
